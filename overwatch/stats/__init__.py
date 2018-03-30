@@ -26,7 +26,7 @@ async def async_query(platform, region, battle_tag):
     url = STATS_URL.format(platform=platform, region=region, battle_tag=battle_tag.replace('#', '-'))
     response_text = None
     async with aiohttp.ClientSession() as session:
-        response = await fetch(session, url)
+        response = await async_fetch(session, url)
         response_text = await response.text()
     
         if response.status == 404:
