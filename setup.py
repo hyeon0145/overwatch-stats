@@ -22,5 +22,5 @@ setup(
     ],
     keywords='overwatch stats',
     packages=find_packages(),
-    install_requires=['requests', 'lxml', 'inflect'],
+    install_requires=['requests', 'lxml', 'inflect', 'asyncio', 'aiohttp', 'async_timeout'],
 )
