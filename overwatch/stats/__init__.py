@@ -1,6 +1,9 @@
 import datetime
 import re
 
+import asyncio
+import aiohttp
+import async_timeout
 import lxml.html
 import requests
 
@@ -15,6 +18,24 @@ STATS_URL = 'https://playoverwatch.com/en-us/career/{platform}/{region}/{battle_
 
 AVAILABLE_PLAY_MODES = ('quick', 'competitive')
 
+async def async_fetch(session, url):
+    async with async_timeout.timeout(10):
+        return await session.get(url)
+
+async def async_query(platform, region, battle_tag):
+    url = STATS_URL.format(platform=platform, region=region, battle_tag=battle_tag.replace('#', '-'))
+    response_text = None
+    async with aiohttp.ClientSession() as session:
+        response = await async_fetch(session, url)
+        response_text = await response.json()
+    
+        if response_text['code'] == 404:
+            raise ValueError('cannot find the player {battle_tag}'.format(battle_tag=battle_tag))
+
+    tree = lxml.html.fromstring(response_text)
+    output = parse_tree(tree)
+    return output
+
 def query(platform, region, battle_tag):
     url = STATS_URL.format(platform=platform, region=region, battle_tag=battle_tag.replace('#', '-'))
     response = requests.get(url)
@@ -22,7 +43,10 @@ def query(platform, region, battle_tag):
         raise ValueError('cannot find the player {battle_tag}'.format(battle_tag=battle_tag))
 
     tree = lxml.html.fromstring(response.text)
+    output = parse_tree(tree)
+    return output
 
+def parse_tree(tree):
     output = {}
     output['level'] = extract_level(tree)
     output['icon_url'] = extract_icon_url(tree)
