@@ -27,9 +27,9 @@ async def async_query(platform, region, battle_tag):
     response_text = None
     async with aiohttp.ClientSession() as session:
         response = await async_fetch(session, url)
-        response_text = await response.text()
+        response_text = await response.json()
     
-        if response.status == 404:
+        if response_text['code'] == 404:
             raise ValueError('cannot find the player {battle_tag}'.format(battle_tag=battle_tag))
 
     tree = lxml.html.fromstring(response_text)
